@@ -1,21 +1,19 @@
 var express = require('express');
+var mongoose = require('mongoose');
+var bodyParser = require('body-parser');
+
+var db = mongoose.connect('mongodb://localhost/bookAPI');
 
 var app = express();
 
-var bookRouter = express.Router();
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-bookRouter.route('/books')
-.get(function(req, res) {
-  var responseJson = {
-    id: 69,
-    title: 'The Lord of the Rings',
-    author: 'J.R.R. Tolkien'
-  };
+var Book = require('./models/bookModel');
 
-  res.json(responseJson);
-});
+var bookRouter = require('./routes/bookRoutes')(Book);
 
-app.use('/api', bookRouter);
+app.use('/api/books', bookRouter);
 
 var port = process.env.PORT || 4000;
 
