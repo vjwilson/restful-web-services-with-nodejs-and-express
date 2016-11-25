@@ -3,34 +3,12 @@ var express = require('express');
 var routes = function(Book) {
   var bookRouter = express.Router();
 
+  var bookController = require('../controllers/bookController')(Book);
+console.log(bookController)
+
   bookRouter.route('/')
-    .post(function(req, res) {
-      var book = new Book(req.body);
-      book.save();
-
-      res.status(201).send(book);
-    })
-    .get(function(req, res) {
-      var query = {};
-
-      if (req.query.author) {
-        query.author = req.query.author;
-      }
-      if (req.query.genre) {
-        query.genre = req.query.genre;
-      }
-      if (req.query.title) {
-        query.title = req.query.title;
-      }
-
-      Book.find(query, function(err, books) {
-        if (err) {
-          res.status(500).send(err);
-        } else {
-          res.json(books);
-        }
-      });
-    });
+    .post(bookController.post)
+    .get(bookController.get);
 
   bookRouter.use('/:bookId', function(req, res, next) {
     Book.findById(req.params.bookId, function(err, book) {
@@ -47,7 +25,10 @@ var routes = function(Book) {
 
   bookRouter.route('/:bookId')
     .get(function(req, res) {
-      res.json(req.currentBook);
+      var hateosBook = req.currentBook.toJSON();
+      hateosBook.links = {};
+      hateosBook.links.filterByThisGenre = encodeURI('http://' + req.headers.host + '/api/books/?genre=' + hateosBook.genre);
+      res.json(hateosBook);
     })
     .put(function(req, res) {
       req.currentBook.title = req.body.title;
